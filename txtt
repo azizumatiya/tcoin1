@@ -1,0 +1,15 @@
+ <a href="/movie/{{ movie._id }}" class="btn btn-primary" onclick="removeFromList('{{ movie._id }}')">
+                                    <i class="fas fa-play icon"></i> Play Now 🎥
+                                </a>
+
+
+
+ <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="search" class="search-input" id="searchInput" placeholder="Search movies..." aria-label="Search movies">
+            </div>
+
+
+              .search-container {
+            position: relative;
+        }

@@ -1,0 +1,37 @@
+ <div class="admin-section">
+            <div class="login-prompt">
+                <i class="fas fa-lock"></i> Want to add movies? <a href="/login">Login as Admin</a>
+            </div>
+
+            {% if movies %}
+            <div class="movies-grid">
+                {% for movie in movies %}
+                <div class="movie-card" onclick="window.location.href='/movie/{{ movie._id }}';">
+                    {% if movie.image_seed %}
+                    <img src="https://picsum.photos/seed/{{ movie.image_seed }}/200/300" alt="{{ movie.title }}">
+                    {% else %}
+                    <img src="https://picsum.photos/200/300?random={{ loop.index }}" alt="{{ movie.title }}">
+                    {% endif %}
+                    <h3>{{ movie.title }} ({{ movie.year }})</h3>
+                    <p><i class="fas fa-star"></i> {{ "%.1f"|format(movie.rating) }}/10</p>
+                    <p><i class="fas fa-tag"></i> {{ movie.genre.replace('_', ' ').title() }}</p>
+                    <p>{{ movie.description[:150] }}{% if movie.description|length > 150 %}...{% endif %}</p>
+                    {% if movie.links %}
+                    <div class="links">
+                        <strong>Links:</strong>
+                        {% for link in movie.links %}
+                        <a href="{{ link }}" target="_blank" rel="noopener">{{ link[:50] }}... <i class="fas fa-external-link-alt"></i></a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-movies">
+                <i class="fas fa-film" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                <p>No movies added yet. <a href="/login">Login</a> to add the first one!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>

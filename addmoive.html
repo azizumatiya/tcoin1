@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Movie - StreamFlix Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #e50914;
+            --secondary-color: #141414;
+            --accent-color: #f5c518;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0a0a;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            padding: 20px 50px;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 50px;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 25px;
+            transition: var(--transition);
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Page Container */
+        .page {
+            min-height: 100vh;
+            padding-top: 80px;
+            padding-bottom: 80px;
+        }
+
+        /* Admin Header */
+        .admin-header {
+            padding: 50px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(108, 117, 125, 0.1) 100%);
+        }
+
+        .browse-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .browse-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        /* Admin Section */
+        .admin-section {
+            padding: 30px 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .admin-section h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-3px);
+        }
+
+        .admin-form {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--text-primary);
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Multiple Links Section */
+        .links-section {
+            margin-bottom: 25px;
+        }
+
+        .links-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .link-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .link-input-group input {
+            flex: 1;
+        }
+
+        .remove-link {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .remove-link:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .add-link-btn {
+            background: var(--gradient-1);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+
+        .add-link-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Success Message */
+        .success-message {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            header.scrolled {
+                padding: 10px 20px;
+            }
+
+            .admin-header, .admin-section {
+                padding: 20px;
+            }
+
+            .browse-title {
+                font-size: 2rem;
+            }
+
+            .admin-form {
+                padding: 30px;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .link-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .link-input-group input {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="header-container">
+            <div class="logo" onclick="window.history.back();">StreamFlix Admin</div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">A</div>
+                    <span>Admin User</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Page -->
+    <div class="page">
+        <div class="admin-header">
+            <h1 class="browse-title">Add New Movie</h1>
+            <p class="browse-subtitle">Fill in the details to add a new movie to the library</p>
+        </div>
+
+        <div class="admin-section">
+            <div id="successMessage" class="success-message">
+                <i class="fas fa-check-circle"></i> Movie added successfully!
+            </div>
+
+            <form class="admin-form" id="movieForm">
+                <div class="form-group">
+                    <label for="title">Movie Title *</label>
+                    <input type="text" id="title" name="title" placeholder="Enter movie title" required>
+                </div>
+                <div class="form-group">
+                    <label for="year">Release Year *</label>
+                    <input type="number" id="year" name="year" placeholder="e.g., 2023" min="1900" max="2025" required>
+                </div>
+                <div class="form-group">
+                    <label for="rating">Rating (0-10) *</label>
+                    <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" placeholder="e.g., 8.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="genre">Genre *</label>
+                    <select id="genre" name="genre" required>
+                        <option value="">Select Genre</option>
+                        <option value="action">Action</option>
+                        <option value="comedy">Comedy</option>
+                        <option value="drama">Drama</option>
+                        <option value="horror">Horror</option>
+                        <option value="romance">Romance</option>
+                        <option value="scifi">Sci-Fi</option>
+                        <option value="thriller">Thriller</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="Enter movie description..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="image">Image URL or Seed (for Picsum)</label>
+                    <input type="text" id="image" name="image" placeholder="e.g., movie-title">
+                </div>
+                <div class="form-group links-section">
+                    <label>Trailer/Video Links (Optional)</label>
+                    <div id="linksContainer">
+                        <!-- Dynamic link inputs will be added here -->
+                    </div>
+                    <button type="button" class="add-link-btn" onclick="addLinkField()">
+                        <i class="fas fa-plus"></i> Add Link
+                    </button>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add Movie
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back();">
+                        <i class="fas fa-arrow-left"></i>
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Add dynamic link field
+        function addLinkField() {
+            const container = document.getElementById('linksContainer');
+            const linkIndex = container.children.length;
+            const linkGroup = document.createElement('div');
+            linkGroup.className = 'link-input-group';
+            linkGroup.innerHTML = `
+                <input type="url" name="links[]" placeholder="Enter trailer/video URL (e.g., https://youtube.com/watch?v=...)" required>
+                <button type="button" class="remove-link" onclick="removeLinkField(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(linkGroup);
+        }
+
+        // Remove link field
+        function removeLinkField(button) {
+            button.parentElement.remove();
+        }
+
+        // Form submission
+        document.getElementById('movieForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const movieData = {
+                title: document.getElementById('title').value,
+                year: parseInt(document.getElementById('year').value),
+                rating: parseFloat(document.getElementById('rating').value),
+                genre: document.getElementById('genre').value,
+                description: document.getElementById('description').value,
+                image: document.getElementById('image').value,
+                links: []
+            };
+
+            // Collect all links
+            const linkInputs = e.target.querySelectorAll('input[name="links[]"]');
+            linkInputs.forEach(input => {
+                if (input.value.trim()) {
+                    movieData.links.push(input.value.trim());
+                }
+            });
+
+            // Simulate API call (in real app, send to backend)
+            console.log('Adding movie:', movieData);
+            
+            // Show success message
+            const successMsg = document.getElementById('successMessage');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+            
+            // Reset form
+            e.target.reset();
+            document.getElementById('linksContainer').innerHTML = '';
+            
+            // In real app, redirect or refresh list
+            // window.location.href = 'admin.html';
+        });
+    </script>
+</body>
+</html>

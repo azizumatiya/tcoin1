@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFlix - My List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(147, 51, 234, 0.3);
+            border-top: 4px solid #9333ea;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text h2 {
+            color: #e2e8f0;
+            font-size: 24px;
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.5s forwards;
+        }
+
+        .loading-text p {
+            color: #94a3b8;
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.8s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links.active {
+            display: flex !important;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            flex-direction: column;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            color: white;
+            width: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input.active {
+            width: 250px;
+            opacity: 1;
+        }
+
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            border-color: #9333ea;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .profile-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-item.active {
+            color: #a78bfa;
+        }
+
+        .profile-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 0;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            color: #cbd5e1;
+        }
+
+        .hamburger i {
+            font-size: 20px;
+        }
+
+        /* My List Section */
+        .mylist-section {
+            padding: 4rem 2rem;
+            margin-top: 80px;
+        }
+
+        .mylist-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .mylist-title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .mylist-count {
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Movie Grid */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .movie-card {
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .movie-poster {
+            position: relative;
+            aspect-ratio: 2/3;
+            overflow: hidden;
+            background: #1e293b;
+        }
+
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.5s ease;
+        }
+
+        .movie-card:hover .movie-poster img {
+            transform: scale(1.1);
+            filter: brightness(0.7);
+        }
+
+        .movie-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.3), transparent);
+            padding: 1rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .movie-card:hover .movie-overlay {
+            opacity: 1;
+        }
+
+        .movie-meta-info {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .movie-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .movie-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: black;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .movie-btn:hover {
+            background: white;
+            transform: translateY(-1px);
+        }
+
+        .movie-icon-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .movie-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .movie-icon-btn.in-list {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+
+        .movie-info {
+            padding: 1rem;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: white;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .movie-details {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .movie-year {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .movie-genre {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #94a3b8;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 10px;
+        }
+
+        .rating-badge {
+            background: rgba(250, 204, 21, 0.2);
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            color: #fde047;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            width: 96px;
+            height: 96px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: #64748b;
+            font-size: 48px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-description {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .empty-description a {
+            color: #a78bfa;
+            text-decoration: none;
+        }
+
+        .empty-description a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: #cbd5e1;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .bottom-nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+        }
+
+        .bottom-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            gap: 0.25rem;
+            transition: color 0.3s ease;
+        }
+
+        .bottom-nav a:hover, .bottom-nav a.active {
+            color: white;
+        }
+
+        .bottom-nav i {
+            font-size: 20px;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 300px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .toast-message {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .mylist-section {
+                padding: 2rem 1rem;
+            }
+
+            .mylist-title {
+                font-size: 2rem;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .search-input.active {
+                width: calc(100vw - 120px);
+                max-width: 200px;
+            }
+
+            .footer {
+                padding: 1.5rem 1rem 1rem;
+                margin-top: 2rem;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .footer-section h3 {
+                font-size: 1.1rem;
+            }
+
+            .footer-links li {
+                margin-bottom: 0.25rem;
+            }
+
+            .footer-bottom {
+                font-size: 12px;
+                padding-top: 1rem;
+            }
+
+            .bottom-nav {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">
+            <div class="loading-spinner"></div>
+            <h2>StreamFlix Vibes 🔥</h2>
+            <p>Loading your watchlist... 🎬</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.href='/';">STREAMFLIX</div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+            <li><a href="/home" class="{% if request.path == '/home' %}active{% endif %}">Movies</a></li>
+            <!-- <li><a href="/series" class="{% if request.path == '/series' %}active{% endif %}">Series</a></li> -->
+            <li><a href="/mylist" class="{% if request.path == '/mylist' %}active{% endif %}">My List</a></li>
+            <li><a href="/search" class="{% if request.path == '/search' %}active{% endif %}">Search</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            
+            
+            {% if is_logged_in %}
+            <div style="position: relative;">
+                <div class="profile-avatar" id="profileBtn">A</div>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-item active" data-profile="admin">
+                        <div class="profile-avatar" style="width: 24px; height: 24px; font-size: 12px;">A</div>
+                        <span>Admin User 😎</span>
+                    </div>
+                    <div class="profile-separator"></div>
+                    <!-- <div class="profile-item" onclick="window.location.href='/add';">
+                        <i class="fas fa-plus"></i> Add Movie
+                    </div> -->
+                    <div class="profile-item" onclick="window.location.href='/logout';">Sign Out 🚪</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="profile-avatar" onclick="window.location.href='/login';">A</div>
+            {% endif %}
+            
+        </div>
+    </nav>
+
+    <!-- My List Section -->
+    <main class="mylist-section">
+        {% if not is_logged_in %}
+        <div class="login-prompt">
+            <i class="fas fa-lock"></i> Wanna add some 🔥 movies? <a href="/login">Login as Admin</a>
+        </div>
+        {% endif %}
+
+        <div class="mylist-header">
+            <h1 class="mylist-title">My List ❤️</h1>
+            <p class="mylist-count" id="mylistCount">0 movies in your list</p>
+        </div>
+        <div class="section-header">
+            <h2 class="section-title">Your Watchlist</h2>
+        </div>
+        <div class="movie-grid" id="mylistGrid">
+            <!-- Populated by JS from localStorage -->
+        </div>
+        <div class="empty-state" id="mylistEmptyState">
+            <div class="empty-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h3 class="empty-title">Your List is Empty 😔</h3>
+            <p class="empty-description">
+                Add some movies to your list from the <a href="/">home page</a>!
+            </p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <ul>
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="/home" class="{% if request.path == '/home' %}active{% endif %}"><i class="fas fa-film"></i> Movies</a></li>
+            <!-- <li><a href="/series" class="{% if request.path == '/series' %}active{% endif %}"><i class="fas fa-tv"></i> Series</a></li> -->
+            <li><a href="/mylist" class="{% if request.path == '/mylist' %}active{% endif %}"><i class="fas fa-heart"></i> My List</a></li>
+            <li><a href="/search" class="{% if request.path == '/search' %}active{% endif %}"><i class="fas fa-search"></i> Search</a></li>
+        </ul>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Instagram 📸</a></li>
+                        <li><a href="#">TikTok 🎵</a></li>
+                        <li><a href="#">X Platform 🐦</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2025 StreamFlix. All rights reserved. | Made with ❤️ for Gen Z vibes
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-header">
+            <div class="toast-icon" id="toastIcon"></div>
+            <div class="toast-title" id="toastTitle"></div>
+        </div>
+        <div class="toast-message" id="toastMessage"></div>
+    </div>
+
+    <script>
+        // Application state
+        let watchlist = JSON.parse(localStorage.getItem('streamflixWatchlist')) || [];
+        const isLoggedIn = {{ is_logged_in | tojson }};
+
+        // DOM elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchInput = document.getElementById('searchInput');
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        const mylistGrid = document.getElementById('mylistGrid');
+        const mylistEmptyState = document.getElementById('mylistEmptyState');
+        const mylistCount = document.getElementById('mylistCount');
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // Save watchlist to localStorage
+        function saveWatchlist() {
+            localStorage.setItem('streamflixWatchlist', JSON.stringify(watchlist));
+        }
+
+        // Map genres for display
+        function getGenres(movie) {
+            return movie.genre.split('_').map(g => g.charAt(0).toUpperCase() + g.slice(1).toLowerCase());
+        }
+
+        // Create movie card HTML
+        function createMovieCard(movie) {
+            const genres = getGenres(movie).slice(0, 2);
+            return `
+                <div class="movie-card" data-movie-id="${movie.id}">
+                    <div class="movie-poster">
+                        <img src="${movie.image_seed ? `https://picsum.photos/seed/${movie.image_seed}/200/300` : `https://picsum.photos/200/300?random=${Math.random()}`}" alt="${movie.title}">
+                        <div class="movie-overlay">
+                            <div class="movie-meta-info">
+                                <div class="rating-badge">
+                                    <i class="fas fa-star" style="width: 10px; height: 10px;"></i>
+                                    ${movie.rating.toFixed(1)} 
+                                </div>
+                            </div>
+                            <div class="movie-actions">
+                                <a href="/movie/${movie.id}" class="movie-btn">Play 🎬</a>
+                                <button class="movie-icon-btn in-list" data-movie-id="${movie.id}">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-details">
+                            <span class="movie-year">${movie.year}</span>
+                            ${genres.map(g => `<span class="movie-genre">${g}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render My List
+        function renderMyList() {
+            if (watchlist.length === 0) {
+                mylistGrid.style.display = 'none';
+                mylistEmptyState.style.display = 'block';
+                mylistCount.textContent = '0 movies in your list';
+                return;
+            }
+
+            mylistGrid.style.display = 'grid';
+            mylistEmptyState.style.display = 'none';
+            mylistCount.textContent = `${watchlist.length} movie${watchlist.length === 1 ? '' : 's'} in your list`;
+
+            mylistGrid.innerHTML = watchlist.map(movie => createMovieCard(movie)).join('');
+
+            // Add event listeners to My List cards
+            document.querySelectorAll('#mylistGrid .movie-card').forEach(card => {
+                const movieId = card.dataset.movieId;
+
+                // Play button
+                const playBtn = card.querySelector('.movie-btn');
+                if (playBtn) {
+                    playBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        removeFromList(movieId);
+                        window.location.href = `/movie/${movieId}`;
+                    });
+                }
+
+                // Remove from watchlist button
+                const watchlistBtn = card.querySelector('.movie-icon-btn');
+                if (watchlistBtn) {
+                    watchlistBtn.addEventListener('click', () => {
+                        toggleWatchlist(movieId, watchlistBtn);
+                    });
+                }
+            });
+        }
+
+        // Toggle watchlist (remove only on My List page)
+        function toggleWatchlist(movieId, button) {
+            watchlist = watchlist.filter(m => m.id !== movieId);
+            saveWatchlist();
+            showToast('Removed from list', 'Movie removed from your watchlist', 'remove');
+            renderMyList();
+        }
+
+        // Remove from list on play
+        function removeFromList(movieId) {
+            watchlist = watchlist.filter(m => m.id !== movieId);
+            saveWatchlist();
+            showToast('Played', 'Movie removed from list after play', 'info');
+            renderMyList();
+        }
+
+        // Toast notifications
+        function showToast(title, message, type = 'info') {
+            const icons = {
+                add: '<i class="fas fa-heart"></i>',
+                remove: '<i class="fas fa-times"></i>',
+                info: '<i class="fas fa-info-circle"></i>'
+            };
+
+            toastIcon.innerHTML = icons[type] || icons.info;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize app
+        function init() {
+            // Hide loading screen
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }, 1000);
+
+            // Render watchlist
+            renderMyList();
+
+            // Setup event listeners
+            if (searchBtn && searchInput) {
+                searchBtn.addEventListener('click', () => {
+                    searchInput.classList.toggle('active');
+                    if (searchInput.classList.contains('active')) {
+                        searchInput.focus();
+                    } else {
+                        searchInput.value = '';
+                    }
+                });
+            }
+
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', () => {
+                    profileDropdown.classList.toggle('active');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('active');
+                    }
+                });
+            }
+
+            if (hamburger) {
+                hamburger.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+
+            if (navLinks) {
+                navLinks.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navLinks.classList.remove('active');
+                    });
+                });
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

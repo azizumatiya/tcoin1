@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFlix - Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(147, 51, 234, 0.3);
+            border-top: 4px solid #9333ea;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            text-align: center;
+        }
+
+        .loading-text h2 {
+            color: #e2e8f0;
+            font-size: 24px;
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.5s forwards;
+        }
+
+        .loading-text p {
+            color: #94a3b8;
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.8s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            border-color: #9333ea;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .profile-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-item.active {
+            color: #a78bfa;
+        }
+
+        .profile-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 0;
+        }
+
+        /* Register Form */
+        .auth-container {
+            max-width: 400px;
+            margin: 120px auto 40px;
+            padding: 2rem;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .auth-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .auth-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .auth-input:focus {
+            border-color: #9333ea;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .auth-btn {
+            background: linear-gradient(45deg, #9333ea, #ec4899);
+            border: none;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(45deg, #a78bfa, #f472b6);
+        }
+
+        .error-message {
+            color: #f87171;
+            font-size: 14px;
+            margin-top: 0.5rem;
+        }
+
+        .auth-link {
+            color: #a78bfa;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: #cbd5e1;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .bottom-nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+        }
+
+        .bottom-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            gap: 0.25rem;
+            transition: color 0.3s ease;
+        }
+
+        .bottom-nav a:hover, .bottom-nav a.active {
+            color: white;
+        }
+
+        .bottom-nav i {
+            font-size: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .bottom-nav {
+                display: block;
+            }
+
+            .auth-container {
+                margin: 80px 1rem 40px;
+                padding: 1.5rem;
+            }
+
+            .auth-title {
+                font-size: 1.5rem;
+            }
+
+            .auth-input {
+                font-size: 14px;
+                padding: 0.5rem;
+            }
+
+            .auth-btn {
+                font-size: 14px;
+                padding: 0.5rem;
+            }
+
+            .footer {
+                padding: 1.5rem 1rem 1rem;
+                margin-top: 2rem;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .footer-section h3 {
+                font-size: 1.1rem;
+            }
+
+            .footer-links li {
+                margin-bottom: 0.25rem;
+            }
+
+            .footer-bottom {
+                font-size: 12px;
+                padding-top: 1rem;
+            }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 300px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .toast-message {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">
+            <div class="loading-spinner"></div>
+            <h2>StreamFlix Vibes 🔥</h2>
+            <p>Loading your registration page... 🎬</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.href='/';">STREAMFLIX</div>
+        <ul class="nav-links">
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+            <li><a href="/movies" class="{% if request.path == '/movies' %}active{% endif %}">Movies</a></li>
+            <li><a href="/series" class="{% if request.path == '/series' %}active{% endif %}">Series</a></li>
+            <li><a href="/mylist" class="{% if request.path == '/mylist' %}active{% endif %}">My List</a></li>
+            <li><a href="/search" class="{% if request.path == '/search' %}active{% endif %}">Search</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div style="position: relative;">
+                <div class="profile-avatar" id="profileBtn">U</div>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-item active" data-profile="user">
+                        <div class="profile-avatar" style="width: 24px; height: 24px; font-size: 12px;">U</div>
+                        <span>User</span>
+                    </div>
+                    <div class="profile-separator"></div>
+                    <div class="profile-item" onclick="window.location.href='/add';">
+                        <i class="fas fa-plus"></i> Add Movie
+                    </div>
+                    <div class="profile-item" onclick="window.location.href='/login';">Login</div>
+                    <div class="profile-item" onclick="window.location.href='/register';">Register</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Register Form -->
+    <main class="auth-container">
+        <h1 class="auth-title">Join StreamFlix</h1>
+        <form class="auth-form" method="POST" action="/register">
+            <input type="text" class="auth-input" name="username" placeholder="Username" required>
+            <input type="password" class="auth-input" name="password" placeholder="Password" required>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+            <button type="submit" class="auth-btn">Register 🎉</button>
+            <a href="/login" class="auth-link">Already have an account? Login here</a>
+        </form>
+    </main>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <ul>
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="/movies" class="{% if request.path == '/movies' %}active{% endif %}"><i class="fas fa-film"></i> Movies</a></li>
+            <!-- <li><a href="/series" class="{% if request.path == '/series' %}active{% endif %}"><i class="fas fa-tv"></i> Series</a></li> -->
+            <li><a href="/mylist" class="{% if request.path == '/mylist' %}active{% endif %}"><i class="fas fa-heart"></i> My List</a></li>
+            <li><a href="/search" class="{% if request.path == '/search' %}active{% endif %}"><i class="fas fa-search"></i> Search</a></li>
+        </ul>
+    </nav>
+
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-header">
+            <div class="toast-icon" id="toastIcon"></div>
+            <div class="toast-title" id="toastTitle"></div>
+        </div>
+        <div class="toast-message" id="toastMessage"></div>
+    </div>
+
+    <script>
+        // DOM elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // Initialize app
+        function init() {
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }, 1000);
+
+            setupEventListeners();
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', toggleProfileDropdown);
+                document.addEventListener('click', (e) => {
+                    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove('active');
+                    }
+                });
+            }
+
+            document.querySelectorAll('.bottom-nav a[href="/mylist"]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Login Required', 'Please login to view your list', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1500);
+                });
+            });
+        }
+
+        // Profile functionality
+        function toggleProfileDropdown() {
+            profileDropdown.classList.toggle('active');
+        }
+
+        // Toast notifications
+        function showToast(title, message, type = 'info') {
+            const icons = {
+                info: '<i class="fas fa-info-circle"></i>'
+            };
+
+            toastIcon.innerHTML = icons[type] || icons.info;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
